@@ -19,6 +19,10 @@ module.exports = (api) => {
 				],
 			},
 		},
+
+
+
+		
 		ignore: ['node_modules', '**/__snapshots__/**', '**/__tests__/**'],
 		plugins: [
 			'babel-plugin-dev-expression',
