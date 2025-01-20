@@ -76,7 +76,6 @@ export const LanguagePickerWithTranslations = (args: any) => {
 			id="languagePicker"
 			locales={locales}
 			onSelectedLocaleChange={setSelectedLocaleId}
-			selectedLocaleId={selectedLocaleId}
 			small={args.small}
 			translations={translations}
 		/>
