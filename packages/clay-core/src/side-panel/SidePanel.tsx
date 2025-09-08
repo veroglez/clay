@@ -15,6 +15,7 @@ import classnames from 'classnames';
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {CSSTransition} from 'react-transition-group';
 
+import {FocusTrap} from '../focus-trap';
 import {Body} from './Body';
 import {Footer} from './Footer';
 import {Header} from './Header';
@@ -224,118 +225,126 @@ export function SidePanel({
 	const offsetTop = useOffsetTop(containerRef);
 
 	return (
-		<div
-			className={classnames(
-				`c-slideout c-slideout-${position} c-slideout-push`,
-				{
-					'c-slideout-end': direction === 'right',
-					'c-slideout-fluid': fluid,
-					'c-slideout-start': direction === 'left',
+		<FocusTrap active={isMobile && open}>
+			<div
+				className={classnames(
+					`c-slideout c-slideout-${position} c-slideout-push`,
+					{
+						'c-slideout-end': direction === 'right',
+						'c-slideout-fluid': fluid,
+						'c-slideout-start': direction === 'left',
+					}
+				)}
+				ref={slideoutRef}
+				style={
+					position === 'fixed' ? {top: `${offsetTop}px`} : undefined
 				}
-			)}
-			ref={slideoutRef}
-			style={position === 'fixed' ? {top: `${offsetTop}px`} : undefined}
-		>
-			<CSSTransition
-				appear={open}
-				className={classnames('sidebar', className, {
-					'sidebar-dark': displayType === 'dark',
-					'sidebar-light': displayType === 'light',
-				})}
-				classNames={{
-					appearActive: 'c-slideout-show',
-					appearDone: 'c-slideout-show',
-					enter: 'c-slideout-transition c-slideout-transition-in',
-					enterActive: 'c-slideout-show',
-					enterDone: 'c-slideout-show',
-					exit: 'c-slideout-transition c-slideout-transition-out',
-					exitActive: '',
-				}}
-				in={open}
-				onEnter={() => {
-					containerRef.current?.classList.add(
-						'c-slideout-transition',
-						'c-slideout-transition-in',
-						`c-slideout-push-${
-							direction === 'left' ? 'start' : 'end'
-						}`
-					);
-				}}
-				onEntered={(_, isAppearing) => {
-					slideoutRef.current?.classList.add('c-slideout-shown');
-
-					containerRef.current?.classList.remove(
-						'c-slideout-transition',
-						'c-slideout-transition-in'
-					);
-
-					if (!isAppearing) {
-						// Move focus to sidepanel when opening but not if
-						// opened on first load.
-						sidePanelRef.current?.focus({preventScroll: true});
-					}
-				}}
-				onExit={() => {
-					containerRef.current?.classList.add(
-						'c-slideout-transition',
-						'c-slideout-transition-out'
-					);
-
-					containerRef.current?.classList.remove(
-						`c-slideout-push-${
-							direction === 'left' ? 'start' : 'end'
-						}`
-					);
-				}}
-				onExited={() => {
-					slideoutRef.current?.classList.remove('c-slideout-shown');
-
-					containerRef.current?.classList.remove(
-						'c-slideout-transition',
-						'c-slideout-transition-out'
-					);
-				}}
-				timeout={prefersReducedMotion ? 0 : open ? 200 : 300}
 			>
-				<As
-					{...otherProps}
-					aria-label={ariaLabel}
-					aria-labelledby={
-						!ariaLabelledby && !ariaLabel ? titleId : ariaLabelledby
-					}
-					ref={sidePanelRef}
-					style={{
-						width:
-							!isMobile && fluid
-								? Math.min(panelWidthMax, resizeWidth)
-								: panelWidth &&
-								  Math.max(panelWidth, PANEL_WIDTH_MIN),
+				<CSSTransition
+					appear={open}
+					className={classnames('sidebar', className, {
+						'sidebar-dark': displayType === 'dark',
+						'sidebar-light': displayType === 'light',
+					})}
+					classNames={{
+						appearActive: 'c-slideout-show',
+						appearDone: 'c-slideout-show',
+						enter: 'c-slideout-transition c-slideout-transition-in',
+						enterActive: 'c-slideout-show',
+						enterDone: 'c-slideout-show',
+						exit: 'c-slideout-transition c-slideout-transition-out',
+						exitActive: '',
 					}}
-					tabIndex={-1}
-				>
-					<SidePanelContext.Provider
-						value={{onOpenChange: setOpen, open, titleId}}
-					>
-						{children}
+					in={open}
+					onEnter={() => {
+						containerRef.current?.classList.add(
+							'c-slideout-transition',
+							'c-slideout-transition-in',
+							`c-slideout-push-${
+								direction === 'left' ? 'start' : 'end'
+							}`
+						);
+					}}
+					onEntered={(_, isAppearing) => {
+						slideoutRef.current?.classList.add('c-slideout-shown');
 
-						{!isMobile && fluid && (
-							<PanelResizer
-								aria-orientation="vertical"
-								aria-valuemax={panelWidthMax}
-								aria-valuemin={PANEL_WIDTH_MIN}
-								aria-valuenow={resizeWidth}
-								className="c-horizontal-resizer"
-								nodeRef={sidePanelRef}
-								onPanelWidthChange={setResizeWidth}
-								panelWidthMax={panelWidthMax}
-								panelWidthMin={PANEL_WIDTH_MIN}
-								position={direction}
-							/>
-						)}
-					</SidePanelContext.Provider>
-				</As>
-			</CSSTransition>
-		</div>
+						containerRef.current?.classList.remove(
+							'c-slideout-transition',
+							'c-slideout-transition-in'
+						);
+
+						if (!isAppearing) {
+							// Move focus to sidepanel when opening but not if
+							// opened on first load.
+							sidePanelRef.current?.focus({preventScroll: true});
+						}
+					}}
+					onExit={() => {
+						containerRef.current?.classList.add(
+							'c-slideout-transition',
+							'c-slideout-transition-out'
+						);
+
+						containerRef.current?.classList.remove(
+							`c-slideout-push-${
+								direction === 'left' ? 'start' : 'end'
+							}`
+						);
+					}}
+					onExited={() => {
+						slideoutRef.current?.classList.remove(
+							'c-slideout-shown'
+						);
+
+						containerRef.current?.classList.remove(
+							'c-slideout-transition',
+							'c-slideout-transition-out'
+						);
+					}}
+					timeout={prefersReducedMotion ? 0 : open ? 200 : 300}
+				>
+					<As
+						{...otherProps}
+						aria-label={ariaLabel}
+						aria-labelledby={
+							!ariaLabelledby && !ariaLabel
+								? titleId
+								: ariaLabelledby
+						}
+						ref={sidePanelRef}
+						style={{
+							width:
+								!isMobile && fluid
+									? Math.min(panelWidthMax, resizeWidth)
+									: panelWidth &&
+									  Math.max(panelWidth, PANEL_WIDTH_MIN),
+						}}
+						tabIndex={-1}
+					>
+						<SidePanelContext.Provider
+							value={{onOpenChange: setOpen, open, titleId}}
+						>
+							{children}
+
+							{!isMobile && fluid && (
+								<PanelResizer
+									aria-orientation="vertical"
+									aria-valuemax={panelWidthMax}
+									aria-valuemin={PANEL_WIDTH_MIN}
+									aria-valuenow={resizeWidth}
+									className="c-horizontal-resizer"
+									nodeRef={sidePanelRef}
+									onPanelWidthChange={setResizeWidth}
+									panelWidthMax={panelWidthMax}
+									panelWidthMin={PANEL_WIDTH_MIN}
+									position={direction}
+								/>
+							)}
+						</SidePanelContext.Provider>
+					</As>
+				</CSSTransition>
+			</div>
+		</FocusTrap>
 	);
 }
 
