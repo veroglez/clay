@@ -3,7 +3,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-import React, {ReactNode, createContext, useContext} from 'react';
+import React, {
+	Dispatch,
+	ReactNode,
+	SetStateAction,
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useState,
+} from 'react';
 
 import type {ChildrenFunction} from '../collection';
 
@@ -17,18 +26,25 @@ type VerticalNavContextProps = {
 	close: (key: React.Key) => void;
 	expandedKeys: Set<React.Key>;
 	firstKey: React.Key;
+	focusedElement?: HTMLElement | null;
 	open: (key: React.Key) => void;
 	toggle: (key: React.Key) => void;
 };
 
-const VerticalNavContext = createContext<VerticalNavContextProps>({
+const VerticalNavContext = createContext<
+	VerticalNavContextProps & {
+		setManualFocusedElement: Dispatch<SetStateAction<HTMLElement | null>>;
+	}
+>({
 	activeKey: null,
 	ariaCurrent: null,
 	childrenRoot: {current: null},
 	close: () => false,
 	expandedKeys: new Set(),
 	firstKey: '',
+	focusedElement: null,
 	open: () => false,
+	setManualFocusedElement: () => null,
 	spritemap: '',
 	toggle: () => null,
 });
@@ -41,10 +57,20 @@ function VerticalNavContextProvider({
 	close,
 	expandedKeys,
 	firstKey,
+	focusedElement,
 	open,
 	spritemap,
 	toggle,
 }: VerticalNavContextProps & {children: ReactNode}) {
+	const [manualFocusedElement, setManualFocusedElement] =
+		useState<HTMLElement | null>(null);
+
+	useEffect(() => {
+		if (focusedElement) {
+			setManualFocusedElement(focusedElement);
+		}
+	}, [focusedElement]);
+
 	return (
 		<VerticalNavContext.Provider
 			value={{
@@ -54,7 +80,9 @@ function VerticalNavContextProvider({
 				close,
 				expandedKeys,
 				firstKey,
+				focusedElement: manualFocusedElement,
 				open,
+				setManualFocusedElement,
 				spritemap,
 				toggle,
 			}}
@@ -68,4 +96,17 @@ function useVerticalNavContext() {
 	return useContext(VerticalNavContext);
 }
 
-export {VerticalNavContextProvider, useVerticalNavContext};
+function useSetManualFocus() {
+	const {setManualFocusedElement} = useContext(VerticalNavContext);
+
+	return useCallback(
+		(element: HTMLElement | null) => {
+			setManualFocusedElement(element);
+
+			element?.focus();
+		},
+		[setManualFocusedElement]
+	);
+}
+
+export {VerticalNavContextProvider, useSetManualFocus, useVerticalNavContext};

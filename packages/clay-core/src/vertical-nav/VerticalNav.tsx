@@ -210,7 +210,7 @@ function VerticalNav<T extends Record<string, any> | string>({
 
 	const childrenRootRef = useRef(children);
 
-	const {navigationProps} = useNavigation({
+	const {navigationFocusedElement, navigationProps} = useNavigation({
 		activation,
 		containerRef,
 		orientation: 'vertical',
@@ -263,6 +263,7 @@ function VerticalNav<T extends Record<string, any> | string>({
 				close={close}
 				expandedKeys={expandedKeys}
 				firstKey={collection.getFirstItem().key}
+				focusedElement={navigationFocusedElement}
 				open={open}
 				spritemap={spritemap}
 				toggle={toggle}
